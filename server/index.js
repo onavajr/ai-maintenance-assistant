@@ -17,6 +17,10 @@ app.get("/api/machines/:id", (req, res) => {
     const machineId = Number(req.params.id);
 
     const machine = machines.find((machine) => machine.id === machineId);
+
+    if(!machine) {
+        return res.status(404).json({ message: "Machine not found" });
+    }
     
     res.json(machine);
 });
