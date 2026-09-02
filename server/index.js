@@ -2,6 +2,8 @@ const express = require('express');
 
 const app = express();
 
+app.use(express.json());
+
 app.get('/', (req, res) => {
     res.send("AI assistance backend running");
 })
@@ -12,6 +14,22 @@ const machines = [{ id: 1, name: "Robot arm A"},
 app.get("/api/machines", (req, res) => {
     res.json(machines);
 })
+
+app.post("/api/machines", (req, res) => {
+
+    if(!req.body.name) {
+        return res.status(400).json({ message: "Machine name is required" });
+    }
+
+    const newMachine = {
+        id: machines.length + 1,
+        name: req.body.name
+    };
+
+    machines.push(newMachine);
+    res.status(201).json(newMachine);
+});
+
 
 app.get("/api/machines/:id", (req, res) => {
     const machineId = Number(req.params.id);
