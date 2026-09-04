@@ -61,6 +61,22 @@ app.delete("/api/machines/:id", (req, res) => {
     res.json(deletedMachine[0]);
 });
 
+app.patch("/api/machines/:id",(req, res) => {
+    const machineId = Number(req.params.id);
+
+    const machine = machines.find((machine) => machine.id === machineId);
+
+    if (!machine) {
+        return res.status(404).json({ message: "Machine not found" });
+    }
+
+    if (req.body.name) {
+        machine.name = req.body.name;
+    }
+
+    res.json(machine);
+});
+
 app.listen(5000, () => {
     console.log("server running on port 5000");
 });
