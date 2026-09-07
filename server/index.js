@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
+const Machine = require('./models/Machine');
 
 const app = express();
 
@@ -13,9 +14,16 @@ app.get('/', (req, res) => {
 const machines = [{ id: 1, name: "Robot arm A"},
         { id: 2, name: "Conveyor line 1"},];
 
-app.get("/api/machines", (req, res) => {
-    res.json(machines);
-})
+app.get("/api/machines", async(req, res) => {
+    try {
+        const machines = await Machine.find();
+
+        res.json(machines);
+    } catch (err) {
+        res.status(500).json({ message: "Error retrieving machines", error: err.message });
+    }
+    
+});
 
 app.post("/api/machines", (req, res) => {
 
