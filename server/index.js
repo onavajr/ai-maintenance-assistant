@@ -25,19 +25,26 @@ app.get("/api/machines", async(req, res) => {
     
 });
 
-app.post("/api/machines", (req, res) => {
-
-    if(!req.body.name) {
-        return res.status(400).json({ message: "Machine name is required" });
+app.post("/api/machines", async(req, res) => {
+    try {
+        if(!req.body.name) {
+        return res.status(400).json({
+            message: "Machine name is required"
+        });
     }
 
-    const newMachine = {
-        id: machines.length + 1,
-        name: req.body.name
-    };
+        const newMachine = await Machine.create({
+            name: req.body.name
+        });
+    
+        res.status(201).json(newMachine);
+    } catch (err) {
+        res.status(500).json({
+        message: "Error creating machine",
+        error: err.message
+        });
+    }
 
-    machines.push(newMachine);
-    res.status(201).json(newMachine);
 });
 
 

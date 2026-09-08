@@ -7,6 +7,6 @@ const machineSchema = new mongoose.Schema({
     }
 });
 
-const Machine = mongooose.model("Machine", machineSchema);
+const Machine = mongoose.model("Machine", machineSchema);
 
 module.exports = Machine;
