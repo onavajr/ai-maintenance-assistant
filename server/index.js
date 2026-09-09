@@ -11,8 +11,6 @@ app.get('/', (req, res) => {
     res.send("AI assistance backend running");
 })
 
-const machines = [{ id: 1, name: "Robot arm A"},
-        { id: 2, name: "Conveyor line 1"},];
 
 app.get("/api/machines", async(req, res) => {
     try {
@@ -22,8 +20,8 @@ app.get("/api/machines", async(req, res) => {
     } catch (err) {
         res.status(500).json({ message: "Error retrieving machines", error: err.message });
     }
-    
 });
+
 
 app.post("/api/machines", async(req, res) => {
     try {
@@ -32,7 +30,6 @@ app.post("/api/machines", async(req, res) => {
             message: "Machine name is required"
         });
     }
-
         const newMachine = await Machine.create({
             name: req.body.name
         });
@@ -44,55 +41,66 @@ app.post("/api/machines", async(req, res) => {
         error: err.message
         });
     }
-
 });
 
 
-app.get("/api/machines/:id", (req, res) => {
-    const machineId = Number(req.params.id);
+app.get("/api/machines/:id", async (req, res) => {
+    try {
+        const machine = await Machine.findById(req.params.id);
 
-    const machine = machines.find((machine) => machine.id === machineId);
+        if (!machine) {
+            return res.status(404).json({ message: 
+                "Machine not found"
+            });
+        }
 
-    if(!machine) {
-        return res.status(404).json({ message: "Machine not found" });
-    }
-    
-    res.json(machine);
-});
+        res.json(machine);
 
-app.delete("/api/machines/:id", (req, res) => {
-    const machineId = Number(req.params.id);
-
-    const machineIndex = machines.findIndex(
-        (machine) => machine.id === machineId
-    );
-
-    if (machineIndex === -1) {
-        return res.status(404).json({
-            message: "Machine not found"
+    } catch (err) {
+        res.status(500).json({ message: 
+            "Error retrieving machine", error: err.message
         });
     }
-
-    const deletedMachine = machines.splice(machineIndex, 1);
-
-    res.json(deletedMachine[0]);
 });
 
-app.patch("/api/machines/:id",(req, res) => {
-    const machineId = Number(req.params.id);
 
-    const machine = machines.find((machine) => machine.id === machineId);
-
-    if (!machine) {
-        return res.status(404).json({ message: "Machine not found" });
+app.delete("/api/machines/:id", async (req, res) => {
+    try {
+        const machine = await Machine.findByIdAndDelete(req.params.id);
+        if (!machine) {
+            return res.status(404).json({ message: "Machine not found" });
+        }
+        res.json(machine);
+    } catch (err) {
+        res.status(500).json({ message: "Error deleting machine", error: err.message });
     }
-
-    if (req.body.name) {
-        machine.name = req.body.name;
-    }
-
-    res.json(machine);
 });
+
+
+app.patch("/api/machines/:id", async (req, res) => {
+    try {
+        const machine = await Machine.findByIdAndUpdate(
+            req.params.id,
+            { name: req.body.name },
+            { new: true }
+        );
+
+        if (!machine) {
+            return res.status(404).json({
+                message: "Machine not found"
+            });
+        }
+
+        res.json(machine);
+
+    } catch (err) {
+        res.status(500).json({
+            message: "Error updating machine",
+            error: err.message
+        });
+    }
+});
+
 
 mongoose.connect(process.env.MONGO_URI)
     .then(() => {
