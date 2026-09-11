@@ -43,6 +43,18 @@ app.post("/api/machines", async(req, res) => {
     }
 });
 
+app.get("/api/machines/count", async (req, res) => {
+    try {
+        const count = await Machine.countDocuments();
+        res.json({ count });
+    } catch (err) {
+        res.status(500).json({ 
+            message: "Error counting machines",
+            error: err.message
+        });
+    }   
+});
+
 
 app.get("/api/machines/:id", async (req, res) => {
     try {
@@ -100,6 +112,8 @@ app.patch("/api/machines/:id", async (req, res) => {
         });
     }
 });
+
+
 
 
 mongoose.connect(process.env.MONGO_URI)
