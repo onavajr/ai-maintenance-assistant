@@ -113,7 +113,19 @@ app.patch("/api/machines/:id", async (req, res) => {
     }
 });
 
+app.post("/api/chat", async (req, res) => {
+    const message = req.body.message;
 
+    if (!message) {
+        return res.status(400).json({
+            message: "Message is required"
+        });
+    }
+
+    res.json({
+        reply: `You said: ${message}`
+    });
+});
 
 
 mongoose.connect(process.env.MONGO_URI)
