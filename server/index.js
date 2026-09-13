@@ -115,16 +115,22 @@ app.patch("/api/machines/:id", async (req, res) => {
 
 app.post("/api/chat", async (req, res) => {
     const message = req.body.message;
+    try{
+         if (!message) {
+            return res.status(400).json({
+                message: "Message is required"
+            });
+        } catch (err) {
+            res.status(500).json({
+            message: "Error processing chat request",
+            error: err.message
+            });
+        }
 
-    if (!message) {
-        return res.status(400).json({
-            message: "Message is required"
-        });
-    }
-
-    res.json({
-        reply: `You said: ${message}`
+        res.json({
+            reply: `You said: ${message}`
     });
+    }
 });
 
 
