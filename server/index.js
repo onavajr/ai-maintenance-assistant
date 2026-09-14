@@ -1,7 +1,12 @@
 require('dotenv').config();
+const OpenAI = require('openai');
 const express = require('express');
 const mongoose = require('mongoose');
 const Machine = require('./models/Machine');
+
+const client = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY
+});
 
 const app = express();
 
@@ -114,25 +119,28 @@ app.patch("/api/machines/:id", async (req, res) => {
 });
 
 app.post("/api/chat", async (req, res) => {
-    const message = req.body.message;
-    try{
-         if (!message) {
-            return res.status(400).json({
-                message: "Message is required"
-            });
-        } catch (err) {
-            res.status(500).json({
-            message: "Error processing chat request",
-            error: err.message
-            });
+    try {
+        const message = req.body.message;
+        if (!message) {
+            return res.status(400).json({ message: "Message is required" });
         }
 
-        res.json({
-            reply: `You said: ${message}`
-    });
-    }
-});
+        const response = await client.responses.create({
+            model: "gpt-4.1-mini",
+            input: message
+        });
 
+        res.json({
+            reply: response.output_text
+        });
+    } catch (err) {
+        res.status(500).json({
+            message: "Error processing chat",
+            error: err.message
+        });
+    }
+
+});
 
 mongoose.connect(process.env.MONGO_URI)
     .then(() => {
