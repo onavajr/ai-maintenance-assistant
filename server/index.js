@@ -1,12 +1,10 @@
 require('dotenv').config();
-const OpenAI = require('openai');
 const express = require('express');
 const mongoose = require('mongoose');
 const Machine = require('./models/Machine');
+const getAIResponse = require('./services/aiService');
+const Part = require('./models/Part');
 
-const client = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY
-});
 
 const app = express();
 
@@ -125,13 +123,10 @@ app.post("/api/chat", async (req, res) => {
             return res.status(400).json({ message: "Message is required" });
         }
 
-        const response = await client.responses.create({
-            model: "gpt-4.1-mini",
-            input: message
-        });
+        const reply = await getAIResponse(message);
 
         res.json({
-            reply: response.output_text
+            reply: reply
         });
     } catch (err) {
         res.status(500).json({
@@ -140,6 +135,24 @@ app.post("/api/chat", async (req, res) => {
         });
     }
 
+});
+
+app.post("/api/parts", async (req, res) => {
+    try {
+        if(
+            !req.body.partNumber ||
+            !req.body.name ||
+            !req.body.manufacturer ||
+            !req.body.category ||
+            !req.body.unitOfMeasure
+        ){
+            return res.status(400).json({
+                message: "Required parts information is missing"
+            });
+        }
+    } catch (err) {
+
+    }
 });
 
 mongoose.connect(process.env.MONGO_URI)
