@@ -150,8 +150,27 @@ app.post("/api/parts", async (req, res) => {
                 message: "Required parts information is missing"
             });
         }
-    } catch (err) {
 
+        const newPart = await Part.create({
+            partNumber: req.body.partNumber,
+            name: req.body.name,
+            manufacturer: req.body.manufacturer,
+            category: req.body.category,
+            description: req.body.description,
+            unitOfMeasure: req.body.unitOfMeasure,
+            minimumStock: req.body.minimumStock,
+            reorderPoint: req.body.reorderPoint,
+            lastPurchasePrice: req.body.lastPurchasePrice,
+            averageCost: req.body.averageCost
+        });
+
+          res.status(201).json(newPart);
+
+    } catch (err) {
+        res.status(500).json({
+            message: "Error creating part",
+            error: err.message
+        });
     }
 });
 
