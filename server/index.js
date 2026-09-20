@@ -174,6 +174,45 @@ app.post("/api/parts", async (req, res) => {
     }
 });
 
+app.get("/api/parts", async (req, res) => {
+    try {
+        const parts = await Part.find();
+
+        res.json(parts);
+
+    } catch (err) {
+        res.status(500).json({
+            message: "Error retrieving parts",
+            error: err.message
+        });
+    }
+});
+
+app.get("/api/parts/:id", async (req, res) => {
+    try {
+        if (!mongoose.Types.ObjectId.isValid(req.params.id)){
+            return res.status(400).json({
+                message: "Invalid part ID, please enter the correct ID"
+            });
+        }
+        const part = await Part.findById(req.params.id);
+
+        if (!part) {
+            return res.status(404).json({
+                message: "Part not found"
+            });
+        }
+
+        res.json(part);
+
+    } catch (err) {
+        res.status(500).json({
+            message: "Error retrieving part",
+            error: err.message
+        });
+    }
+});
+
 mongoose.connect(process.env.MONGO_URI)
     .then(() => {
         console.log("Connected to MongoDB");
