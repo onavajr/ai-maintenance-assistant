@@ -242,6 +242,36 @@ app.patch("/api/parts/:id", async (req, res) => {
     }
 });
 
+app.delete("/api/parts/:id", async (req, res) => {
+    try {
+        if (!mongoose.Types.ObjectId.isValid(req.params.id)){
+            return res.status(400).json({
+                message: "Invalid part ID, please enter the correct ID"
+            });
+        }
+
+        const part = await Part.findByIdAndDelete(req.params.id);
+
+        if (!part) {
+            return res.status(404).json({
+                message: "Part not found"
+            });
+        }
+
+        res.json({
+            message: "Part deleted successfully"
+        });
+    } catch (err) {
+        res.status(500).json({
+            message: "Error deleting part",
+            error: err.message
+        });
+    }
+});
+
+
+
+
 mongoose.connect(process.env.MONGO_URI)
     .then(() => {
         console.log("Connected to MongoDB");
