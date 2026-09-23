@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const Machine = require('./models/Machine');
 const getAIResponse = require('./services/aiService');
 const Part = require('./models/Part');
+const InventoryTransaction = require('./models/InventoryTransaction');
 
 
 const app = express();
@@ -13,7 +14,6 @@ app.use(express.json());
 app.get('/', (req, res) => {
     res.send("AI assistance backend running");
 })
-
 
 app.get("/api/machines", async(req, res) => {
     try {
