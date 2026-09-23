@@ -6,7 +6,6 @@ const getAIResponse = require('./services/aiService');
 const Part = require('./models/Part');
 const InventoryTransaction = require('./models/InventoryTransaction');
 
-
 const app = express();
 
 app.use(express.json());
@@ -266,6 +265,23 @@ app.delete("/api/parts/:id", async (req, res) => {
             message: "Error deleting part",
             error: err.message
         });
+    }
+});
+
+app.post("/api/inventory-transactions", async (req, res) => {
+    try {
+
+        if(
+            !req.body.part ||
+            !req.body.type ||
+            !req.body.reason
+        ){
+            return res.status(400).json({
+                message: "Required inventory transaction information is missing"
+            });
+
+    } catch (err) {
+
     }
 });
 
