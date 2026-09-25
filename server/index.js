@@ -301,13 +301,39 @@ app.post("/api/inventory-transactions", async (req, res) => {
 
 app.get("/api/inventory-transactions", async (req, res) => {
     try {
-        const transaction = await InventoryTransaction.find();
+        const transactions = await InventoryTransaction.find();
+
+        res.json(transactions);
+
+    } catch (err) {
+        res.status(500).json({
+            message: "Error retrieving inventory transaction",
+            error: err.message
+        });
+    }
+});
+
+app.get("/api/inventory-transactions/:id", async (req, res) => {
+    try {
+        if(!mongoose.Types.ObjectId.isValid(req.params.id)){
+            return res.status(400).json({
+                message:"Invalid inventory transaction ID"
+            });
+        }
+
+        const transaction = await InventoryTransaction.findById(req.params.id);
+
+        if(!transaction){
+            return res.status(404).json({
+                message: "Inventory transaction not found"
+            });
+        }
 
         res.json(transaction);
 
     } catch (err) {
-        res.status(505).json({
-            message: "Error retreiving inventory transaction",
+        res.status(500).json({
+            message: "Error retrieving inventory transaction",
             error: err.message
         });
     }
