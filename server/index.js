@@ -270,23 +270,48 @@ app.delete("/api/parts/:id", async (req, res) => {
 
 app.post("/api/inventory-transactions", async (req, res) => {
     try {
-
-        if(
+        if (
             !req.body.part ||
             !req.body.type ||
+            !req.body.quantity ||
             !req.body.reason
-        ){
+        ) {
             return res.status(400).json({
                 message: "Required inventory transaction information is missing"
             });
+        }
+
+        const newTransaction = await InventoryTransaction.create({
+            part: req.body.part,
+            type: req.body.type,
+            quantity: req.body.quantity,
+            reason: req.body.reason,
+            notes: req.body.notes
+        });
+
+        res.status(201).json(newTransaction);
 
     } catch (err) {
-
+        res.status(500).json({
+            message: "Error creating inventory transaction",
+            error: err.message
+        });
     }
 });
 
+app.get("/api/inventory-transactions", async (req, res) => {
+    try {
+        const transaction = await InventoryTransaction.find();
 
+        res.json(transaction);
 
+    } catch (err) {
+        res.status(505).json({
+            message: "Error retreiving inventory transaction",
+            error: err.message
+        });
+    }
+});
 
 mongoose.connect(process.env.MONGO_URI)
     .then(() => {
