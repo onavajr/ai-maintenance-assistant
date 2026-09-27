@@ -339,6 +339,20 @@ app.get("/api/inventory-transactions/:id", async (req, res) => {
     }
 });
 
+app.get("/api/inventory-balances", async(req, res) => {
+    try{
+        const balances = await InventoryBalance.find();
+
+        res.json(balances);
+
+    } catch (err) {
+        res.status(500).json({
+            message: "Error retrieving inventory balances",
+            error: err.message
+        });
+    }
+});
+
 mongoose.connect(process.env.MONGO_URI)
     .then(() => {
         console.log("Connected to MongoDB");
