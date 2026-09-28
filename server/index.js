@@ -353,6 +353,19 @@ app.get("/api/inventory-balances", async(req, res) => {
     }
 });
 
+app.get("/api/inventory-balances/part/:partId ", async (req, res) => {
+    try {
+        if (!mongoose.Types.ObjectId.isValid(req.params.partId)) {
+            return res.status(400).json({
+                message: "Invalid part ID"
+            });
+        }
+    } catch (err) {
+
+    }
+});
+
+
 mongoose.connect(process.env.MONGO_URI)
     .then(() => {
         console.log("Connected to MongoDB");
