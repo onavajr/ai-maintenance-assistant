@@ -5,6 +5,7 @@ const Machine = require('./models/Machine');
 const getAIResponse = require('./services/aiService');
 const Part = require('./models/Part');
 const InventoryTransaction = require('./models/InventoryTransaction');
+const InventoryBalance = require('./models/InventoryBalance');
 
 const app = express();
 
@@ -353,15 +354,31 @@ app.get("/api/inventory-balances", async(req, res) => {
     }
 });
 
-app.get("/api/inventory-balances/part/:partId ", async (req, res) => {
+app.get("/api/inventory-balances/part/:partId", async (req, res) => {
     try {
         if (!mongoose.Types.ObjectId.isValid(req.params.partId)) {
             return res.status(400).json({
                 message: "Invalid part ID"
             });
         }
-    } catch (err) {
 
+        const balance = await InventoryBalance.findOne({
+            part: req.params.partId
+        });
+
+        if(!balance) {
+            return res.status(404).json({
+                message: "Inventory balance not found"
+            });
+        }
+
+        res.json(balance);
+
+    } catch (err) {
+        res.status(500).json({
+            message: "Error retrieving inventory balance",
+            error: err.message
+        });
     }
 });
 
