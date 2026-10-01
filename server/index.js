@@ -382,6 +382,29 @@ app.get("/api/inventory-balances/part/:partId", async (req, res) => {
     }
 });
 
+app.post("/api/inventory-balances", async (req, res) => {
+    try {
+        if (!req.body.part || req.body.quantityOnHand === undefined){
+            return res.status(400).json({
+                message: "Required inventory balance information is missing"
+            });
+        }
+
+        const newBalance = await InventoryBalance.create({
+            part: req.body.part,
+            quantityOnHand: req.body.quantityOnHand,
+        });
+
+        res.status(201).json(newBalance);
+
+    } catch (err) {
+        res.status(500).json({
+            message: "Error creating inventory balance",
+            error: err.message
+        });
+    }
+});
+
 
 mongoose.connect(process.env.MONGO_URI)
     .then(() => {
