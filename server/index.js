@@ -282,13 +282,40 @@ app.post("/api/inventory-transactions", async (req, res) => {
             });
         }
 
-        const newTransaction = await InventoryTransaction.create({
+        let balance = await InventoryBalance.findOne({
+            part: req.body.part
+        });
+
+        if(!balance){
+            balance = await InventoryBalance.create({
+                part: req.body.part,
+                quantityOnHand: 0
+            });
+        };
+
+        if (req.body.type === "OUT" && balance.quantityOnHand < req.body.quantity) {
+        return res.status(400).json({
+            message: "Insufficient inventory"
+        });
+    }
+
+    const newTransaction = await InventoryTransaction.create({
             part: req.body.part,
             type: req.body.type,
             quantity: req.body.quantity,
             reason: req.body.reason,
             notes: req.body.notes
         });
+
+        if(req.body.type === "IN"){
+            balance.quantityOnHand += req.body.quantity;
+        }
+
+        if(req.body.type === "OUT"){
+            balance.quantityOnHand -= req.body.quantity;
+        }
+
+        await balance.save();
 
         res.status(201).json(newTransaction);
 
@@ -309,6 +336,30 @@ app.get("/api/inventory-transactions", async (req, res) => {
     } catch (err) {
         res.status(500).json({
             message: "Error retrieving inventory transaction",
+            error: err.message
+        });
+    }
+});
+
+app.get("/api/inventory-transactions/part/:partId", async (req, res) => {
+    try {
+        const partId = req.params.partId;
+
+        if (!mongoose.Types.ObjectId.isValid(partId)) {
+            return res.status(400).json({
+                message: "Invalid part ID"
+            });
+        }
+
+        const transactionHistory = await InventoryTransaction.find({
+            part: partId
+        });
+
+        res.json(transactionHistory);
+
+    } catch (err) {
+        res.status(500).json({
+            message: "Error retrieving inventory transaction history",
             error: err.message
         });
     }
