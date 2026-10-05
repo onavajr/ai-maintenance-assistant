@@ -6,6 +6,7 @@ const getAIResponse = require('./services/aiService');
 const Part = require('./models/Part');
 const InventoryTransaction = require('./models/InventoryTransaction');
 const InventoryBalance = require('./models/InventoryBalance');
+const Supplier = require('./models/Supplier');
 
 const app = express();
 
@@ -451,6 +452,32 @@ app.post("/api/inventory-balances", async (req, res) => {
     } catch (err) {
         res.status(500).json({
             message: "Error creating inventory balance",
+            error: err.message
+        });
+    }
+});
+
+app.post("/api/suppliers", async (req, res) => {
+    try {
+        if (!req.body.name) {
+            return res.status(400).json({
+                message: "Supplier name is required"
+            });
+        }
+
+        const suppliers = await Supplier.create({
+            name: req.body.name,
+            contactName: req.body.contactName,
+            email: req.body.email,
+            phone: req.body.phone,
+            website: req.body.website,
+        });
+
+        res.status(201).json(suppliers);
+
+    } catch (err) {
+        res.status(500).json({
+            message: "Error creating supplier",
             error: err.message
         });
     }
