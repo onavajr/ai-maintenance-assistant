@@ -483,6 +483,77 @@ app.post("/api/suppliers", async (req, res) => {
     }
 });
 
+app.get("/api/suppliers", async (req, res) => {
+    try {
+        const suppliers = await Supplier.find();
+
+        res.status(200).json(suppliers);
+
+    } catch (err) {
+        res.status(500).json({
+            message: "Error retrieving suppliers",
+            error: err.message
+        });
+    }
+});
+
+app.get("/api/suppliers/:id", async (req, res) => {
+    try {
+        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+            return res.status(400).json({
+                message: "Invalid supplier ID"
+            });
+        }
+
+        const supplier = await Supplier.findById(req.params.id);
+
+        if (!supplier) {
+            return res.status(404).json({
+                message: "Supplier not found"
+            });
+        }
+
+        res.json(supplier);
+
+    } catch (err) {
+        res.status(500).json({
+            message: "Error retrieving supplier",
+            error: err.message
+        });
+    }
+
+});
+
+app.patch("/api/suppliers/:id", async (req, res) => {
+    try {
+        if (!mongoose.Types.ObjectId.isValid(req.params.id)){
+            return res.status(400).json({
+                message: "Invalid supplier ID"
+            });
+        }
+
+        const supplier = await Supplier.findByIdAndUpdate(
+            req.params.id,
+            req.body,
+            { new: true }
+        );
+        
+        if (!supplier) {
+            return res.status(404).json({
+                message: "Supplier not found"
+            });
+        }
+
+        res.json(supplier);
+
+    } catch (err) {
+        res.status(500).json({
+            message: "Error updating supplier",
+            error: err.message
+        });
+    }
+});
+
 
 mongoose.connect(process.env.MONGO_URI)
     .then(() => {
