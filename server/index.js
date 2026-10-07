@@ -554,6 +554,34 @@ app.patch("/api/suppliers/:id", async (req, res) => {
     }
 });
 
+app.delete("/api/suppliers/:id", async (req, res) => {
+    try {
+        if (!mongoose.Types.ObjectId.isValid(req.params.id)){
+            return res.status(400).json({
+                message: "Invalid supplier ID"
+            });
+        }
+        
+        const supplier = await Supplier.findByIdAndDelete(req.params.id);
+
+        if (!supplier) {
+            return res.status(404).json({
+                message: "Supplier not found"
+            });
+        }
+        
+        res.json({
+            message: "Supplier deleted successfully"
+        });
+
+    } catch (err) {
+        res.status(500).json({
+            message: "Error deleting supplier",
+            error: err.message
+        });
+    }
+});
+
 
 mongoose.connect(process.env.MONGO_URI)
     .then(() => {
