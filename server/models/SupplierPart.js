@@ -13,6 +13,10 @@ const supplierPartSchema = new mongoose.Schema({
         required: true
     },
 
+    supplierPartNumber: {
+        type: String
+    },
+
     price: {
         type: Number,
         required: true
@@ -21,7 +25,15 @@ const supplierPartSchema = new mongoose.Schema({
     leadTimeDays: {
         type: Number,
         required: true
-    }
+    },
+
+    active: {
+        type: Boolean,
+        default: true
+    },
+    
+},{
+    timestamps: true
 });
 
 const SupplierPart = mongoose.model('SupplierPart', supplierPartSchema);
