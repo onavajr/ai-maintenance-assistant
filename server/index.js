@@ -7,6 +7,7 @@ const Part = require('./models/Part');
 const InventoryTransaction = require('./models/InventoryTransaction');
 const InventoryBalance = require('./models/InventoryBalance');
 const Supplier = require('./models/Supplier');
+const SupplierPart = require('./models/SupplierPart');
 
 const app = express();
 
@@ -577,6 +578,23 @@ app.delete("/api/suppliers/:id", async (req, res) => {
     } catch (err) {
         res.status(500).json({
             message: "Error deleting supplier",
+            error: err.message
+        });
+    }
+});
+
+app.post("./api/supplierParts" , async (req, res) => {
+    try {
+        if(!mongoose.Types.ObjectId.isValid(req.body.supplier) ||
+        !mongoose.Types.ObjectId.isValid(req.body.part)
+    ) {
+        return res.status(400).json({
+            message: "Invalid supplier or part ID"
+        });
+    }
+    } catch (err) {
+        res.status(500).json({
+            message: "Error creating supplier part",
             error: err.message
         });
     }
