@@ -27,6 +27,11 @@ const supplierPartSchema = new mongoose.Schema({
         required: true
     },
 
+    preferred: {
+        type: Boolean,
+        default: false
+    },
+
     active: {
         type: Boolean,
         default: true

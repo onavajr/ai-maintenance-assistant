@@ -583,8 +583,19 @@ app.delete("/api/suppliers/:id", async (req, res) => {
     }
 });
 
-app.post("./api/supplierParts" , async (req, res) => {
+app.post("/api/supplier-parts" , async (req, res) => {
     try {
+        if (
+            !req.body.supplier ||
+            !req.body.part ||
+            req.body.price === undefined ||
+            req.body.leadTimeDays === undefined
+        ){
+            return res.status(400).json({
+                message: "Required supplier part information is missing"
+            });
+        }
+
         if(!mongoose.Types.ObjectId.isValid(req.body.supplier) ||
         !mongoose.Types.ObjectId.isValid(req.body.part)
     ) {
@@ -592,6 +603,34 @@ app.post("./api/supplierParts" , async (req, res) => {
             message: "Invalid supplier or part ID"
         });
     }
+        const supplier = await Supplier.findById(req.body.supplier);
+
+        if (!supplier) {
+            return res.status(404).json({
+                message: "Supplier not found"
+            });
+        }
+
+        const part = await Part.findById(req.body.part);
+
+        if (!part) {
+            return res.status(404).json({
+                message: "Part not found"
+            });
+        }
+
+        const newSupplierPart = await SupplierPart.create({
+            supplier: req.body.supplier,
+            part: req.body.part,
+            supplierPartNumber: req.body.supplierPartNumber,
+            price: req.body.price,
+            leadTimeDays: req.body.leadTimeDays,
+            preferred: req.body.preferred,
+            active: req.body.active
+        });
+
+        res.status(201).json(newSupplierPart);
+
     } catch (err) {
         res.status(500).json({
             message: "Error creating supplier part",
