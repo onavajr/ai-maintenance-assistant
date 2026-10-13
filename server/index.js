@@ -641,7 +641,9 @@ app.post("/api/supplier-parts" , async (req, res) => {
 
 app.get("/api/supplier-parts", async (req, res) => {
     try {
-        const supplierParts = await SupplierPart.find();
+        const supplierParts = await SupplierPart.find()
+        .populate("supplier")
+        .populate("part");
 
         res.json(supplierParts);
     } catch (err) {
@@ -652,6 +654,33 @@ app.get("/api/supplier-parts", async (req, res) => {
     }
 });
 
+app.get("/api/supplier-parts/:id", async (req, res) => {
+    try {
+        if (!mongoose.Types.ObjectId.isValid(req.params.id)){
+            return res.status(400).json({
+                message: "Invalid supplier part ID"
+            });
+        }
+        
+        const supplierPart = await SupplierPart.findById(req.params.id)
+        .populate("supplier")
+        .populate("part");
+
+        if (!supplierPart) {
+            return res.status(404).json({
+                message: "Supplier part not found"
+            });
+        }
+
+        return res.json(supplierPart);
+
+    } catch (err) {
+        res.status(500).json({
+            message: "Error retrieving supplier part",
+            error: err.message
+        });
+    }
+});
 
 mongoose.connect(process.env.MONGO_URI)
     .then(() => {
