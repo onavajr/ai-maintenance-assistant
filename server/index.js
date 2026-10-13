@@ -639,6 +639,19 @@ app.post("/api/supplier-parts" , async (req, res) => {
     }
 });
 
+app.get("/api/supplier-parts", async (req, res) => {
+    try {
+        const supplierParts = await SupplierPart.find();
+
+        res.json(supplierParts);
+    } catch (err) {
+        res.status(500).json({
+            message: "Error retrieving supplier parts",
+            error: err.message
+        });
+    }
+});
+
 
 mongoose.connect(process.env.MONGO_URI)
     .then(() => {
