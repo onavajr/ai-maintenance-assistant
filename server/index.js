@@ -682,6 +682,48 @@ app.get("/api/supplier-parts/:id", async (req, res) => {
     }
 });
 
+app.patch("/api/supplier-parts/:id", async (req, res) => {
+    try {
+        if(!mongoose.Types.ObjectId.isValid(req.params.id)){
+            return res.status(400).json({
+                message: "Invalid supplier part ID"
+            });
+        }
+
+        if (
+            req.body.price === undefined
+            (
+                typeof req.body.price !== "number" ||
+                !Number.isFinite(req.body.price) ||
+                req.body.price < 0
+            )
+        ) {
+            return res.status(400).json({
+                message: "Supplier price must be a non-negative number"
+            });
+        }
+
+        const supplierPart = await SupplierPart.findByIdAndUpdate(
+            req.params.id,
+            {
+                price: req.body.price,
+                leadTimesDays: req.body.leadTimeDays,
+                preferred: req.body.preferred,
+                active: req.body.active
+            },
+            {new: true, runValidators: true}
+        );
+
+        res.json(supplierPart);
+
+    } catch (err) {
+        res.status(500).json({
+            message: "Error updating supplier part",
+            error: err.message
+        });
+    }
+});
+
 mongoose.connect(process.env.MONGO_URI)
     .then(() => {
         console.log("Connected to MongoDB");
