@@ -691,7 +691,7 @@ app.patch("/api/supplier-parts/:id", async (req, res) => {
         }
 
         if (
-            req.body.price === undefined
+            req.body.price !== undefined &&
             (
                 typeof req.body.price !== "number" ||
                 !Number.isFinite(req.body.price) ||
@@ -703,16 +703,34 @@ app.patch("/api/supplier-parts/:id", async (req, res) => {
             });
         }
 
+        if (
+            req.body.leadTimeDays !== undefined &&
+            (
+                !Number.isInteger(req.body.leadTimeDays) ||
+                req.body.leadTimeDays < 0
+            )
+        ) {
+            return res.status(404).json(
+            {message: "Lead time must be a non-negative whole number"}
+            );
+        }
+
         const supplierPart = await SupplierPart.findByIdAndUpdate(
             req.params.id,
             {
                 price: req.body.price,
-                leadTimesDays: req.body.leadTimeDays,
+                leadTimeDays: req.body.leadTimeDays,
                 preferred: req.body.preferred,
                 active: req.body.active
             },
             {new: true, runValidators: true}
         );
+
+        if(!supplierPart) {
+            return res.status(404).json({
+                message: "Supplier part not found"
+            });
+        }
 
         res.json(supplierPart);
 
