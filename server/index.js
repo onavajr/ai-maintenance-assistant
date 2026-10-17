@@ -710,23 +710,60 @@ app.patch("/api/supplier-parts/:id", async (req, res) => {
                 req.body.leadTimeDays < 0
             )
         ) {
-            return res.status(404).json(
+            return res.status(400).json(
             {message: "Lead time must be a non-negative whole number"}
             );
         }
 
+        if(
+            req.body.preferred !== undefined &&
+            typeof req.body.preferred !== "boolean"
+        ){
+            return res.status(400).json({
+                message: "Preferred must be true or false"
+            });
+        }
+
+         if(
+            req.body.active !== undefined &&
+            typeof req.body.active !== "boolean"
+        ){
+            return res.status(400).json({
+                message: "Active must be true or false"
+            });
+        }
+
+        const updates = {};
+
+        if (req.body.price !== undefined) {
+            updates.price = req.body.price;
+        }
+
+        if (req.body.leadTimeDays !== undefined) {
+            updates.leadTimeDays = req.body.leadTimeDays;
+        }
+
+        if (req.body.preferred !== undefined) {
+            updates.preferred = req.body.preferred;
+        }
+
+        if (req.body.active !== undefined) {
+            updates.active = req.body.active;
+        }
+
+        if (Object.keys(updates).length === 0) {
+            return res.status(400).json({
+                message: "No valid fields provided for update"
+            });
+        }
+
         const supplierPart = await SupplierPart.findByIdAndUpdate(
             req.params.id,
-            {
-                price: req.body.price,
-                leadTimeDays: req.body.leadTimeDays,
-                preferred: req.body.preferred,
-                active: req.body.active
-            },
-            {new: true, runValidators: true}
+            updates,
+            { new: true, runValidators: true }
         );
 
-        if(!supplierPart) {
+        if (!supplierPart) {
             return res.status(404).json({
                 message: "Supplier part not found"
             });
