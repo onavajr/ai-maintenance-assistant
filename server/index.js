@@ -8,6 +8,7 @@ const InventoryTransaction = require('./models/InventoryTransaction');
 const InventoryBalance = require('./models/InventoryBalance');
 const Supplier = require('./models/Supplier');
 const SupplierPart = require('./models/SupplierPart');
+const SupplierPriceHistory = require("./models/SupplierPriceHistory");
 
 const app = express();
 
@@ -778,6 +779,28 @@ app.patch("/api/supplier-parts/:id", async (req, res) => {
         });
     }
 });
+
+
+app.patch("/api/supplier-parts/:id", async (req, res) => {
+    if(Object.keys(updates).lenght === 0){
+        return res.status(400).json({
+            message: "No valid fields provided for update"
+        });
+    };
+
+    const existingSupplierPart = await SupplierPart.findById(
+    req.params.id
+    );
+
+    if(!existingSupplierPart) {
+        return res.status(404).json({
+            message: "Supplier part not found"
+        });
+    }
+
+});
+
+
 
 mongoose.connect(process.env.MONGO_URI)
     .then(() => {
