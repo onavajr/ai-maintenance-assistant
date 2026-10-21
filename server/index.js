@@ -782,7 +782,7 @@ app.patch("/api/supplier-parts/:id", async (req, res) => {
 
 
 app.patch("/api/supplier-parts/:id", async (req, res) => {
-    if(Object.keys(updates).lenght === 0){
+    if(Object.keys(updates).length === 0){
         return res.status(400).json({
             message: "No valid fields provided for update"
         });
@@ -800,7 +800,27 @@ app.patch("/api/supplier-parts/:id", async (req, res) => {
 
 });
 
+app.patch("/api/supplier-parts/:id", async (req, res) => {
 
+    const existingSupplierPart = await SupplierPart.findById(
+        req.params.id
+    );
+})
+
+if(!existingSupplierPart){
+    return res.status(404).json({
+        message: "Supplier part not found"
+    });
+
+    const priceChanged =
+    req.body.price !== undefined &&
+    req.body.price !== existingSupplierPart.price;
+    
+}
+
+
+
+    
 
 mongoose.connect(process.env.MONGO_URI)
     .then(() => {
