@@ -772,6 +772,14 @@ app.patch("/api/supplier-parts/:id", async (req, res) => {
         req.body.price !== undefined &&
         req.body.price !== existingSupplierPart.price;
 
+        if(priceChanged){
+            const historyData = {
+                supplierPart: existingSupplierPart._id,
+                oldprice: existingSupplierPart.price,
+                newPrice: req.body.price
+            };
+        }
+
         const supplierPart = await SupplierPart.findByIdAndUpdate(
             req.params.id,
             updates,
