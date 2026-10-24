@@ -802,6 +802,28 @@ app.patch("/api/supplier-parts/:id", async (req, res) => {
     }
 });
 
+app.get("/api/supplier-parts/:id/price-history", async(req, res) =>{
+    try {
+        if(!mongoose.Types.ObjectId.isValid(req.params.id)){
+            return res.status(400).json({
+                message: "Invalid supplier part ID"
+            });
+        }
+
+        const history = await SupplierPriceHistory.find({
+            supplierPart: req.params.id
+        }).sort({ createdAt: -1 });
+
+        res.json(history);
+
+    } catch (err) {
+        res.status().json({
+            message: "Error retrieving supplier price history",
+            error: err.message
+        });
+    }
+});
+
 mongoose.connect(process.env.MONGO_URI)
     .then(() => {
         console.log("Connected to MongoDB");
