@@ -775,7 +775,7 @@ app.patch("/api/supplier-parts/:id", async (req, res) => {
         if(priceChanged){
             const historyData = {
                 supplierPart: existingSupplierPart._id,
-                oldprice: existingSupplierPart.price,
+                oldPrice: existingSupplierPart.price,
                 newPrice: req.body.price
             };
         }
@@ -817,7 +817,7 @@ app.get("/api/supplier-parts/:id/price-history", async(req, res) =>{
         res.json(history);
 
     } catch (err) {
-        res.status().json({
+        res.status(500).json({
             message: "Error retrieving supplier price history",
             error: err.message
         });
