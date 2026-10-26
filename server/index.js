@@ -758,41 +758,55 @@ app.patch("/api/supplier-parts/:id", async (req, res) => {
             });
         }
 
-        const existingSupplierPart = await SupplierPart.findById(
-        req.params.id
-        );
+        const supplierPart = await mongoose.connection.transaction(
+            async (session) => {
 
-        if(!existingSupplierPart) {
-            return res.status(404).json({
-                message: "Supplier part not found"
-            });
+            const existingSupplierPart = await SupplierPart.findById(
+                req.params.id
+            ).session(session);
+
+            if (!existingSupplierPart) {
+                return null;
+            }
+
+            const priceChanged =
+                req.body.price !== undefined &&
+                req.body.price !== existingSupplierPart.price;
+
+            const updatedSupplierPart = await SupplierPart.findByIdAndUpdate(
+                req.params.id,
+                updates,
+                { new: true, runValidators: true, session }
+            );
+
+            if (!updatedSupplierPart) {
+                return null;
+            }
+
+            if (priceChanged) {
+                const historyData = {
+                    supplierPart: existingSupplierPart._id,
+                    oldPrice: existingSupplierPart.price,
+                    newPrice: req.body.price
+                };
+
+                await SupplierPriceHistory.create(
+                    [historyData],
+                    { session }
+                );
+            }
+
+            return updatedSupplierPart;
         }
+    );
 
-        const priceChanged =
-        req.body.price !== undefined &&
-        req.body.price !== existingSupplierPart.price;
+    if (!supplierPart) {
+        return res.status(404).json({
+            message: "Supplier part not found"
+        });
+    }
 
-        if(priceChanged){
-            const historyData = {
-                supplierPart: existingSupplierPart._id,
-                oldPrice: existingSupplierPart.price,
-                newPrice: req.body.price
-            };
-        }
-
-        const supplierPart = await SupplierPart.findByIdAndUpdate(
-            req.params.id,
-            updates,
-            { new: true, runValidators: true }
-        );
-
-        if (!supplierPart) {
-            return res.status(404).json({
-                message: "Supplier part not found"
-            });
-        }
-
-        res.json(supplierPart);
+    res.json(supplierPart);
 
     } catch (err) {
         res.status(500).json({
