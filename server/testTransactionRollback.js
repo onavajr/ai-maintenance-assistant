@@ -31,8 +31,39 @@ async function testRollback() {
 
     console.log("History records before test:", historyCount);
 
+    if(
+        supplierPart.supplierPartNumber === "TEST-PH-001" &&
+        supplierPart.supplier.name === "TEST ONLY - Price History" &&
+        supplierPart.price === 15 &&
+        historyCount === 1
+    ) {
+        try {
+            await mongoose.connection.transaction(async (session) => {
+                await SupplierPart.findByIdAndUpdate(
+                     testSupplierPartId,
+                    { price: 20 },
+                    { session, runValidators: true}
+                );
+               
+                await SupplierPriceHistory.create(
+                    [{
+                        supplierPart: testSupplierPartId,
+                        oldPrice: 15,
+                        newPrice: 20
+                    }],
+                    { session }
+                );
+
+                throw new Error("Intentional rollback test");
+            });
+        } catch (err) {
+            console.log("Expected rollback:", err.message);
+        }
+    } else {
+        console.log("Safety check failed; no changes attempted");
     }
-    
+}
+
     await mongoose.disconnect();
 
 }
