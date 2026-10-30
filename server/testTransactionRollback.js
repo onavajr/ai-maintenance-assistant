@@ -59,6 +59,17 @@ async function testRollback() {
         } catch (err) {
             console.log("Expected rollback:", err.message);
         }
+
+        const priceAfter = await SupplierPart.findById(
+            testSupplierPartId
+        );
+
+        const historyCountAfter = await SupplierPriceHistory.countDocuments({
+            supplierPart: testSupplierPartId
+        });
+
+        console.log("Price after rollback:", priceAfter.price);
+        console.log("History count after rollback:", historyCountAfter);
     } else {
         console.log("Safety check failed; no changes attempted");
     }
