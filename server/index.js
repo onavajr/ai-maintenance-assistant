@@ -285,6 +285,18 @@ app.post("/api/inventory-transactions", async (req, res) => {
             });
         }
 
+        if (!["IN", "OUT"].includes(req.body.type)){
+            return res.status(400).json({
+                message: "Transaction type must be IN or OUT"
+            });
+        }
+
+        if(!Number.isInteger(req.body.quantity) || req.body.quantity <= 0 ){
+            return res.status(400).json({
+                message: "Quantity must be a postive whole number"
+            });
+        }
+
         let balance = await InventoryBalance.findOne({
             part: req.body.part
         });
@@ -849,3 +861,5 @@ mongoose.connect(process.env.MONGO_URI)
 app.listen(5000, () => {
     console.log("server running on port 5000");
 });
+
+
