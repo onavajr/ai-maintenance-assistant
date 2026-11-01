@@ -297,6 +297,12 @@ app.post("/api/inventory-transactions", async (req, res) => {
             });
         }
 
+        if(!mongoose.Types.ObjectId.isValid(req.body.part)){
+            return res.status(400).json({
+                message: "Invalid part ID"
+            });
+        }
+
         let balance = await InventoryBalance.findOne({
             part: req.body.part
         });
