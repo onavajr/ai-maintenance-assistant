@@ -303,6 +303,14 @@ app.post("/api/inventory-transactions", async (req, res) => {
             });
         }
 
+        const part = await Part.findById(req.body.part);
+
+        if(!part){
+            return res.status (404).json({
+                message: "Part not found"
+            });
+        }
+
         let balance = await InventoryBalance.findOne({
             part: req.body.part
         });
