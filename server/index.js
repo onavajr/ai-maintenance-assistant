@@ -297,6 +297,12 @@ app.post("/api/inventory-transactions", async (req, res) => {
             });
         }
 
+        if (typeof req.body.reason !== "string" || !req.body.reason.trim()){
+            return res.status(400).json({
+                message: "A valid transaction reason is required"
+            });
+        }
+
         if(!mongoose.Types.ObjectId.isValid(req.body.part)){
             return res.status(400).json({
                 message: "Invalid part ID"
