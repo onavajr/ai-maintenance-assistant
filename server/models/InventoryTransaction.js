@@ -25,7 +25,14 @@ const inventoryTransactionSchema = new mongoose.Schema({
 
     notes: {
         type: String
-    }
+    },
+
+    performedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        default: null
+    },
+    
 },{
     timestamps: true
 });
