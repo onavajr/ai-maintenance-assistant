@@ -342,13 +342,13 @@ app.post("/api/inventory-transactions", async (req, res) => {
             notes: req.body.notes
         });
 
-        if(req.body.type === "IN"){
-            balance.quantityOnHand += req.body.quantity;
+        let quantityChange = req.body.quantity;
+
+        if (req.body.type === "OUT") {
+            quantityChange = -req.body.quantity;
         }
 
-        if(req.body.type === "OUT"){
-            balance.quantityOnHand -= req.body.quantity;
-        }
+        balance.quantityOnHand += quantityChange;
 
         await balance.save();
 
