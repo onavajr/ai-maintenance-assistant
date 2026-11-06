@@ -39,7 +39,7 @@ app.post("/api/machines", async(req, res) => {
         const newMachine = await Machine.create({
             name: req.body.name
         });
-    
+
         res.status(201).json(newMachine);
     } catch (err) {
         res.status(500).json({
@@ -54,11 +54,11 @@ app.get("/api/machines/count", async (req, res) => {
         const count = await Machine.countDocuments();
         res.json({ count });
     } catch (err) {
-        res.status(500).json({ 
+        res.status(500).json({
             message: "Error counting machines",
             error: err.message
         });
-    }   
+    }
 });
 
 
@@ -67,7 +67,7 @@ app.get("/api/machines/:id", async (req, res) => {
         const machine = await Machine.findById(req.params.id);
 
         if (!machine) {
-            return res.status(404).json({ message: 
+            return res.status(404).json({ message:
                 "Machine not found"
             });
         }
@@ -75,7 +75,7 @@ app.get("/api/machines/:id", async (req, res) => {
         res.json(machine);
 
     } catch (err) {
-        res.status(500).json({ message: 
+        res.status(500).json({ message:
             "Error retrieving machine", error: err.message
         });
     }
@@ -317,6 +317,12 @@ app.post("/api/inventory-transactions", async (req, res) => {
             });
         }
 
+        let quantityChange = req.body.quantity;
+
+        if (req.body.type === "OUT") {
+            quantityChange = -req.body.quantity;
+        }
+
         let balance = await InventoryBalance.findOne({
             part: req.body.part
         });
@@ -341,12 +347,6 @@ app.post("/api/inventory-transactions", async (req, res) => {
             reason: req.body.reason,
             notes: req.body.notes
         });
-
-        let quantityChange = req.body.quantity;
-
-        if (req.body.type === "OUT") {
-            quantityChange = -req.body.quantity;
-        }
 
         balance.quantityOnHand += quantityChange;
 
@@ -571,7 +571,7 @@ app.patch("/api/suppliers/:id", async (req, res) => {
             req.body,
             { new: true }
         );
-        
+
         if (!supplier) {
             return res.status(404).json({
                 message: "Supplier not found"
@@ -595,7 +595,7 @@ app.delete("/api/suppliers/:id", async (req, res) => {
                 message: "Invalid supplier ID"
             });
         }
-        
+
         const supplier = await Supplier.findByIdAndDelete(req.params.id);
 
         if (!supplier) {
@@ -603,7 +603,7 @@ app.delete("/api/suppliers/:id", async (req, res) => {
                 message: "Supplier not found"
             });
         }
-        
+
         res.json({
             message: "Supplier deleted successfully"
         });
@@ -694,7 +694,7 @@ app.get("/api/supplier-parts/:id", async (req, res) => {
                 message: "Invalid supplier part ID"
             });
         }
-        
+
         const supplierPart = await SupplierPart.findById(req.params.id)
         .populate("supplier")
         .populate("part");
