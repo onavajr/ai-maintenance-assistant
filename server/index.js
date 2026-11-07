@@ -319,6 +319,14 @@ app.post("/api/inventory-transactions", async (req, res) => {
 
         let quantityChange = req.body.quantity;
 
+        const stockFilter = { part: req.body.part };
+
+        if (req.body.type === "OUT") {
+            stockFilter.quantityOnHand = {
+                $gte: req.body.quantity
+            };
+        }
+
         if (req.body.type === "OUT") {
             quantityChange = -req.body.quantity;
         }
