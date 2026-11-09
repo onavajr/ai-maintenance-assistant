@@ -331,6 +331,10 @@ app.post("/api/inventory-transactions", async (req, res) => {
             quantityChange = -req.body.quantity;
         }
 
+        const stockUpdate = {
+            $inc: { quaintityOnHand: quantityChange }
+        };
+
         let balance = await InventoryBalance.findOne({
             part: req.body.part
         });
