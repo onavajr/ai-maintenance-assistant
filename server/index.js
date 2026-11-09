@@ -332,39 +332,48 @@ app.post("/api/inventory-transactions", async (req, res) => {
         }
 
         const stockUpdate = {
-            $inc: { quaintityOnHand: quantityChange }
+            $inc: { quantityOnHand: quantityChange }
         };
 
-        let balance = await InventoryBalance.findOne({
-            part: req.body.part
-        });
+        const newTransaction = await mongoose.connection.transaction(
+            async (session) => {
 
-        if(!balance){
-            balance = await InventoryBalance.create({
-                part: req.body.part,
-                quantityOnHand: 0
+                const updatedBalance = await InventoryBalance.findOneAndUpdate(
+                    stockFilter,
+                    stockUpdate,
+                    {
+                        new: true,
+                        upsert: req.body.type === "IN",
+                        session
+                    }
+                );
+
+                if (!updatedBalance) {
+                    return null;
+                }
+
+                const [transaction] = await InventoryTransaction.create(
+                    [{
+                        part: req.body.part,
+                        type: req.body.type,
+                        quantity: req.body.quantity,
+                        reason: req.body.reason,
+                        notes: req.body.notes
+                    }],
+                    { session }
+                );
+
+                return transaction;
+            }
+        );
+
+        if (!newTransaction) {
+            return res.status(400).json({
+                message: "Insufficient inventory"
             });
-        };
+        }
 
-        if (req.body.type === "OUT" && balance.quantityOnHand < req.body.quantity) {
-        return res.status(400).json({
-            message: "Insufficient inventory"
-        });
-    }
-
-    const newTransaction = await InventoryTransaction.create({
-            part: req.body.part,
-            type: req.body.type,
-            quantity: req.body.quantity,
-            reason: req.body.reason,
-            notes: req.body.notes
-        });
-
-        balance.quantityOnHand += quantityChange;
-
-        await balance.save();
-
-        res.status(201).json(newTransaction);
+res.status(201).json(newTransaction);
 
     } catch (err) {
         res.status(500).json({
