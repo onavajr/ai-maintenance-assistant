@@ -30,7 +30,7 @@ async function testRollback() {
                         quantityOnHand: { $gte: 1 }
                     },
                     { $inc: { quantityOnHand: -1 } },
-                    { new: true, session }
+                    { returnDocument: "after", session }
                 );
 
                 if (!updatedBalance) {

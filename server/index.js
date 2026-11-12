@@ -100,7 +100,7 @@ app.patch("/api/machines/:id", async (req, res) => {
         const machine = await Machine.findByIdAndUpdate(
             req.params.id,
             { name: req.body.name },
-            { new: true }
+            { returnDocument: "after" }
         );
 
         if (!machine) {
@@ -227,7 +227,7 @@ app.patch("/api/parts/:id", async (req, res) => {
         const part = await Part.findByIdAndUpdate(
             req.params.id,
             req.body,
-            { new: true }
+            { returnDocument: "after" }
         );
 
         if (!part) {
@@ -342,7 +342,7 @@ app.post("/api/inventory-transactions", async (req, res) => {
                     stockFilter,
                     stockUpdate,
                     {
-                        new: true,
+                        returnDocument: "after",
                         upsert: req.body.type === "IN",
                         session
                     }
@@ -590,7 +590,7 @@ app.patch("/api/suppliers/:id", async (req, res) => {
         const supplier = await Supplier.findByIdAndUpdate(
             req.params.id,
             req.body,
-            { new: true }
+            { returnDocument: "after" }
         );
 
         if (!supplier) {
@@ -829,7 +829,7 @@ app.patch("/api/supplier-parts/:id", async (req, res) => {
             const updatedSupplierPart = await SupplierPart.findByIdAndUpdate(
                 req.params.id,
                 updates,
-                { new: true, runValidators: true, session }
+                { returnDocument: "after", runValidators: true, session }
             );
 
             if (!updatedSupplierPart) {
