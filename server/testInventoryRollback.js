@@ -4,7 +4,7 @@ const mongoose = require("mongoose");
 const InventoryBalance = require("./models/InventoryBalance");
 const InventoryTransaction = require("./models/InventoryTransaction");
 
-const partId = process.argv[2]; // Replace with the actual partId you want to test  
+const partId = process.argv[2]; // Replace with the actual partId you want to test
 
 async function testRollback() {
     try {
@@ -49,7 +49,7 @@ async function testRollback() {
 
                 throw new Error("TEST_ROLLBACK");
             });
-            
+
             throw new Error("Rollback was not triggered");
 
             } catch (err) {
