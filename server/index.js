@@ -100,7 +100,7 @@ app.patch("/api/machines/:id", async (req, res) => {
         const machine = await Machine.findByIdAndUpdate(
             req.params.id,
             { name: req.body.name },
-            { new: true }
+            { returnDocument: "after" }
         );
 
         if (!machine) {
@@ -227,7 +227,7 @@ app.patch("/api/parts/:id", async (req, res) => {
         const part = await Part.findByIdAndUpdate(
             req.params.id,
             req.body,
-            { new: true }
+            { returnDocument: "after" }
         );
 
         if (!part) {
@@ -319,40 +319,61 @@ app.post("/api/inventory-transactions", async (req, res) => {
 
         let quantityChange = req.body.quantity;
 
+        const stockFilter = { part: req.body.part };
+
+        if (req.body.type === "OUT") {
+            stockFilter.quantityOnHand = {
+                $gte: req.body.quantity
+            };
+        }
+
         if (req.body.type === "OUT") {
             quantityChange = -req.body.quantity;
         }
 
-        let balance = await InventoryBalance.findOne({
-            part: req.body.part
-        });
-
-        if(!balance){
-            balance = await InventoryBalance.create({
-                part: req.body.part,
-                quantityOnHand: 0
-            });
+        const stockUpdate = {
+            $inc: { quantityOnHand: quantityChange }
         };
 
-        if (req.body.type === "OUT" && balance.quantityOnHand < req.body.quantity) {
-        return res.status(400).json({
-            message: "Insufficient inventory"
-        });
-    }
+        const newTransaction = await mongoose.connection.transaction(
+            async (session) => {
 
-    const newTransaction = await InventoryTransaction.create({
-            part: req.body.part,
-            type: req.body.type,
-            quantity: req.body.quantity,
-            reason: req.body.reason,
-            notes: req.body.notes
-        });
+                const updatedBalance = await InventoryBalance.findOneAndUpdate(
+                    stockFilter,
+                    stockUpdate,
+                    {
+                        returnDocument: "after",
+                        upsert: req.body.type === "IN",
+                        session
+                    }
+                );
 
-        balance.quantityOnHand += quantityChange;
+                if (!updatedBalance) {
+                    return null;
+                }
 
-        await balance.save();
+                const [transaction] = await InventoryTransaction.create(
+                    [{
+                        part: req.body.part,
+                        type: req.body.type,
+                        quantity: req.body.quantity,
+                        reason: req.body.reason,
+                        notes: req.body.notes
+                    }],
+                    { session }
+                );
 
-        res.status(201).json(newTransaction);
+                return transaction;
+            }
+        );
+
+        if (!newTransaction) {
+            return res.status(400).json({
+                message: "Insufficient inventory"
+            });
+        }
+
+res.status(201).json(newTransaction);
 
     } catch (err) {
         res.status(500).json({
@@ -569,7 +590,7 @@ app.patch("/api/suppliers/:id", async (req, res) => {
         const supplier = await Supplier.findByIdAndUpdate(
             req.params.id,
             req.body,
-            { new: true }
+            { returnDocument: "after" }
         );
 
         if (!supplier) {
@@ -808,7 +829,7 @@ app.patch("/api/supplier-parts/:id", async (req, res) => {
             const updatedSupplierPart = await SupplierPart.findByIdAndUpdate(
                 req.params.id,
                 updates,
-                { new: true, runValidators: true, session }
+                { returnDocument: "after", runValidators: true, session }
             );
 
             if (!updatedSupplierPart) {
