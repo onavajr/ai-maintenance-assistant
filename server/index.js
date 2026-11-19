@@ -9,10 +9,15 @@ const InventoryBalance = require('./models/InventoryBalance');
 const Supplier = require('./models/Supplier');
 const SupplierPart = require('./models/SupplierPart');
 const SupplierPriceHistory = require("./models/SupplierPriceHistory");
+const authRoutes = require("./routes/authRoutes");
+const requireAuth = require("./middleware/requireAuth");
+const requireRole = require("./middleware/requireRole");
 
 const app = express();
 
 app.use(express.json());
+app.use("/api/auth", authRoutes);
+app.use("/api", requireAuth);
 
 app.get('/', (req, res) => {
     res.send("AI assistance backend running");
@@ -29,7 +34,7 @@ app.get("/api/machines", async(req, res) => {
 });
 
 
-app.post("/api/machines", async(req, res) => {
+app.post("/api/machines", requireRole("admin", "manager"), async(req, res) => {
     try {
         if(!req.body.name) {
         return res.status(400).json({
@@ -82,7 +87,7 @@ app.get("/api/machines/:id", async (req, res) => {
 });
 
 
-app.delete("/api/machines/:id", async (req, res) => {
+app.delete("/api/machines/:id", requireRole("admin"), async (req, res) => {
     try {
         const machine = await Machine.findByIdAndDelete(req.params.id);
         if (!machine) {
@@ -95,7 +100,7 @@ app.delete("/api/machines/:id", async (req, res) => {
 });
 
 
-app.patch("/api/machines/:id", async (req, res) => {
+app.patch("/api/machines/:id", requireRole("admin", "manager"), async (req, res) => {
     try {
         const machine = await Machine.findByIdAndUpdate(
             req.params.id,
@@ -461,6 +466,7 @@ app.get("/api/inventory-balances", async(req, res) => {
     }
 });
 
+
 app.get("/api/inventory-balances/part/:partId", async (req, res) => {
     try {
         if (!mongoose.Types.ObjectId.isValid(req.params.partId)) {
@@ -473,7 +479,7 @@ app.get("/api/inventory-balances/part/:partId", async (req, res) => {
             part: req.params.partId
         });
 
-        if(!balance) {
+        if (!balance) {
             return res.status(404).json({
                 message: "Inventory balance not found"
             });
@@ -489,27 +495,13 @@ app.get("/api/inventory-balances/part/:partId", async (req, res) => {
     }
 });
 
-app.post("/api/inventory-balances", async (req, res) => {
-    try {
-        if (!req.body.part || req.body.quantityOnHand === undefined){
-            return res.status(400).json({
-                message: "Required inventory balance information is missing"
-            });
-        }
 
-        const newBalance = await InventoryBalance.create({
-            part: req.body.part,
-            quantityOnHand: req.body.quantityOnHand,
-        });
+app.post("/api/inventory-balances", (req, res) => {
+    res.set("Allow", "GET");
 
-        res.status(201).json(newBalance);
-
-    } catch (err) {
-        res.status(500).json({
-            message: "Error creating inventory balance",
-            error: err.message
-        });
-    }
+    return res.status(405).json({
+        message: "Direct inventory balance creation is disabled. Use POST /api/inventory-transactions."
+    });
 });
 
 app.post("/api/suppliers", async (req, res) => {
