@@ -145,7 +145,7 @@ app.post("/api/chat", async (req, res) => {
 
 });
 
-app.post("/api/parts", async (req, res) => {
+app.post("/api/parts", requireRole("admin", "manager"), async (req, res) => {
     try {
         if(
             !req.body.partNumber ||
@@ -221,7 +221,7 @@ app.get("/api/parts/:id", async (req, res) => {
     }
 });
 
-app.patch("/api/parts/:id", async (req, res) => {
+app.patch("/api/parts/:id", requireRole("admin", "manager"), async (req, res) => {
     try {
         if (!mongoose.Types.ObjectId.isValid(req.params.id)){
             return res.status(400).json({
@@ -250,7 +250,7 @@ app.patch("/api/parts/:id", async (req, res) => {
     }
 });
 
-app.delete("/api/parts/:id", async (req, res) => {
+app.delete("/api/parts/:id", requireRole("admin"), async (req, res) => {
     try {
         if (!mongoose.Types.ObjectId.isValid(req.params.id)){
             return res.status(400).json({
@@ -363,7 +363,8 @@ app.post("/api/inventory-transactions", async (req, res) => {
                         type: req.body.type,
                         quantity: req.body.quantity,
                         reason: req.body.reason,
-                        notes: req.body.notes
+                        notes: req.body.notes,
+                        performedBy: req.user.id
                     }],
                     { session }
                 );
@@ -504,7 +505,7 @@ app.post("/api/inventory-balances", (req, res) => {
     });
 });
 
-app.post("/api/suppliers", async (req, res) => {
+app.post("/api/suppliers", requireRole("admin", "manager"), async (req, res) => {
     try {
         if (!req.body.name) {
             return res.status(400).json({
@@ -571,7 +572,7 @@ app.get("/api/suppliers/:id", async (req, res) => {
 
 });
 
-app.patch("/api/suppliers/:id", async (req, res) => {
+app.patch("/api/suppliers/:id", requireRole("admin", "manager"), async (req, res) => {
     try {
         if (!mongoose.Types.ObjectId.isValid(req.params.id)){
             return res.status(400).json({
@@ -601,7 +602,7 @@ app.patch("/api/suppliers/:id", async (req, res) => {
     }
 });
 
-app.delete("/api/suppliers/:id", async (req, res) => {
+app.delete("/api/suppliers/:id", requireRole("admin"), async (req, res) => {
     try {
         if (!mongoose.Types.ObjectId.isValid(req.params.id)){
             return res.status(400).json({
@@ -629,7 +630,7 @@ app.delete("/api/suppliers/:id", async (req, res) => {
     }
 });
 
-app.post("/api/supplier-parts" , async (req, res) => {
+app.post("/api/supplier-parts", requireRole("admin", "manager"), async (req, res) => {
     try {
         if (
             !req.body.supplier ||
@@ -728,7 +729,7 @@ app.get("/api/supplier-parts/:id", async (req, res) => {
     }
 });
 
-app.patch("/api/supplier-parts/:id", async (req, res) => {
+app.patch("/api/supplier-parts/:id", requireRole("admin", "manager"), async (req, res) => {
     try {
         if(!mongoose.Types.ObjectId.isValid(req.params.id)){
             return res.status(400).json({

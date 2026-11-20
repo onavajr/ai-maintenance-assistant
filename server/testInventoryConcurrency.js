@@ -9,11 +9,40 @@ const requestBody = {
     reason: "Concurrency test"
 };
 
-async function sendRequest() {
+async function loginTechnician() {
+    const email = process.env.TEST_TECHNICIAN_EMAIL;
+    const password = process.env.TEST_TECHNICIAN_PASSWORD;
+
+    if (!email || !password) {
+        throw new Error("Test login credentials are missing");
+    }
+
+    const response = await fetch(
+        "http://localhost:5000/api/auth/login",
+        {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ email, password })
+        }
+    );
+
+    const data = await response.json();
+
+    if (response.status !== 200 || !data.token) {
+        throw new Error("Technician login failed");
+    }
+
+    return data.token;
+}
+
+async function sendRequest(token) {
     const response = await fetch(apiUrl, {
         method: "POST",
         headers: {
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
         },
         body: JSON.stringify(requestBody)
     });
@@ -26,7 +55,17 @@ async function sendRequest() {
 
 async function testConcurrency() {
     try {
-        const beforeResponse = await fetch(
+        const token = await loginTechnician();
+
+        const authenticatedGet = (url) => {
+            return fetch(url, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
+        };
+
+        const beforeResponse = await authenticatedGet(
             `http://localhost:5000/api/inventory-balances/part/${partId}`
         );
 
@@ -45,7 +84,7 @@ async function testConcurrency() {
         const historyUrl =
             `http://localhost:5000/api/inventory-transactions/part/${partId}`;
 
-        const beforeHistoryResponse = await fetch(historyUrl);
+        const beforeHistoryResponse = await authenticatedGet(historyUrl);
 
         if (!beforeHistoryResponse.ok) {
             throw new Error("Cannot read starting history");
@@ -60,8 +99,8 @@ async function testConcurrency() {
         console.log("History before:", beforeHistory.length);
 
         const results = await Promise.all([
-            sendRequest(),
-            sendRequest()
+            sendRequest(token),
+            sendRequest(token)
         ]);
 
         console.log("Technician A:", results[0].status, results[0].data);
@@ -79,7 +118,7 @@ async function testConcurrency() {
             throw new Error("Unexpected concurrency results");
         }
 
-        const afterResponse = await fetch(
+        const afterResponse = await authenticatedGet(
             `http://localhost:5000/api/inventory-balances/part/${partId}`
         );
 
@@ -95,7 +134,7 @@ async function testConcurrency() {
             throw new Error("Incorrect final inventory");
         }
 
-        const afterHistoryResponse = await fetch(historyUrl);
+        const afterHistoryResponse = await authenticatedGet(historyUrl)
 
         if (!afterHistoryResponse.ok) {
             throw new Error("Cannot read final history");
