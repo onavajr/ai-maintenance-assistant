@@ -126,9 +126,18 @@ app.patch("/api/machines/:id", requireRole("admin", "manager"), async (req, res)
 
 app.post("/api/chat", async (req, res) => {
     try {
-        const message = req.body.message;
-        if (!message) {
-            return res.status(400).json({ message: "Message is required" });
+        const message = req.body?.message;
+
+        if (typeof message !== "string" || !message.trim()) {
+            return res.status(400).json({
+                message: "A valid message is required"
+            });
+        }
+
+        if (message.length > 2000) {
+            return res.status(400).json({
+                message: "Message cannot exceed 2000 characters"
+            });
         }
 
         const reply = await getAIResponse(message);
