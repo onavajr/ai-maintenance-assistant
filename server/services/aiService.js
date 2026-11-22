@@ -1,4 +1,5 @@
 const OpenAI = require("openai");
+const extractAIUsage = require("./aiUsage");
 
 const client = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY
@@ -28,7 +29,10 @@ async  function getAIResponse(message) {
                 If actual machine or company data is not provided, clearly say that your answer is based on general maintenance knowledge and do not pretend you have live machine data.`,
             input: message
         });
-        return response.output_text;
+        return {
+            reply: response.output_text,
+            usage: extractAIUsage(response)
+        };
     }
 
 module.exports = getAIResponse;

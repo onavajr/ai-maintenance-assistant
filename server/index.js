@@ -140,11 +140,12 @@ app.post("/api/chat", async (req, res) => {
             });
         }
 
-        const reply = await getAIResponse(message);
+        const aiResult = await getAIResponse(message);
 
         res.json({
-            reply: reply
+            reply: aiResult.reply
         });
+
     } catch (err) {
         res.status(500).json({
             message: "Error processing chat",
