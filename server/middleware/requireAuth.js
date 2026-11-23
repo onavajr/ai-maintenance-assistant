@@ -58,7 +58,10 @@ async function requireAuth(req, res, next) {
 
         req.user = {
             id: user._id.toString(),
-            role: user.role
+            role: user.role,
+            companyId: user.companyId
+                ? user.companyId.toString()
+                : null
         };
 
         return next();
