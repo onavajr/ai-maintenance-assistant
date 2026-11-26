@@ -12,6 +12,8 @@ const SupplierPriceHistory = require("./models/SupplierPriceHistory");
 const authRoutes = require("./routes/authRoutes");
 const requireAuth = require("./middleware/requireAuth");
 const requireRole = require("./middleware/requireRole");
+const requireCompany = require("./middleware/requireCompany");
+
 
 const app = express();
 
@@ -23,9 +25,12 @@ app.get('/', (req, res) => {
     res.send("AI assistance backend running");
 })
 
-app.get("/api/machines", async(req, res) => {
+
+app.get("/api/machines", requireCompany, async(req, res) => {
     try {
-        const machines = await Machine.find();
+        const machines = await Machine.find({
+            companyId: req.user.companyId
+        });
 
         res.json(machines);
     } catch (err) {
@@ -34,16 +39,20 @@ app.get("/api/machines", async(req, res) => {
 });
 
 
-app.post("/api/machines", requireRole("admin", "manager"), async(req, res) => {
+
+app.post("/api/machines", requireRole("admin", "manager"), requireCompany, async(req, res) => {
+
     try {
         if(!req.body.name) {
         return res.status(400).json({
             message: "Machine name is required"
         });
     }
-        const newMachine = await Machine.create({
-            name: req.body.name
-        });
+
+    const newMachine = await Machine.create({
+        name: req.body.name,
+        companyId: req.user.companyId
+    });
 
         res.status(201).json(newMachine);
     } catch (err) {
@@ -54,9 +63,15 @@ app.post("/api/machines", requireRole("admin", "manager"), async(req, res) => {
     }
 });
 
-app.get("/api/machines/count", async (req, res) => {
+
+app.get("/api/machines/count", requireCompany, async (req, res) => {
+
     try {
-        const count = await Machine.countDocuments();
+
+    const count = await Machine.countDocuments({
+        companyId: req.user.companyId
+    });
+
         res.json({ count });
     } catch (err) {
         res.status(500).json({
@@ -67,9 +82,16 @@ app.get("/api/machines/count", async (req, res) => {
 });
 
 
-app.get("/api/machines/:id", async (req, res) => {
+
+app.get("/api/machines/:id", requireCompany, async (req, res) => {
+
     try {
-        const machine = await Machine.findById(req.params.id);
+
+        const machine = await Machine.findOne({
+            _id: req.params.id,
+            companyId: req.user.companyId
+        });
+
 
         if (!machine) {
             return res.status(404).json({ message:
@@ -87,9 +109,16 @@ app.get("/api/machines/:id", async (req, res) => {
 });
 
 
-app.delete("/api/machines/:id", requireRole("admin"), async (req, res) => {
+
+app.delete("/api/machines/:id", requireRole("admin"), requireCompany, async (req, res) => {
+
     try {
-        const machine = await Machine.findByIdAndDelete(req.params.id);
+
+        const machine = await Machine.findOneAndDelete({
+            _id: req.params.id,
+            companyId: req.user.companyId
+        });
+
         if (!machine) {
             return res.status(404).json({ message: "Machine not found" });
         }
@@ -100,13 +129,24 @@ app.delete("/api/machines/:id", requireRole("admin"), async (req, res) => {
 });
 
 
-app.patch("/api/machines/:id", requireRole("admin", "manager"), async (req, res) => {
+
+app.patch("/api/machines/:id", requireRole("admin", "manager"), requireCompany, async (req, res) => {
+
     try {
-        const machine = await Machine.findByIdAndUpdate(
-            req.params.id,
-            { name: req.body.name },
-            { returnDocument: "after" }
+
+        const machine = await Machine.findOneAndUpdate(
+            {
+                _id: req.params.id,
+                companyId: req.user.companyId
+            },
+            {
+                name: req.body.name
+            },
+            {
+                returnDocument: "after"
+            }
         );
+
 
         if (!machine) {
             return res.status(404).json({
@@ -894,16 +934,21 @@ app.get("/api/supplier-parts/:id/price-history", async(req, res) =>{
     }
 });
 
-mongoose.connect(process.env.MONGO_URI)
-    .then(() => {
-        console.log("Connected to MongoDB");
-    })
-    .catch((err) => {
-        console.log("Connection error:", err);
-    })
+if (require.main === module) {
+    mongoose.connect(process.env.MONGO_URI)
+        .then(() => {
+            console.log("Connected to MongoDB");
 
-app.listen(5000, () => {
-    console.log("server running on port 5000");
-});
+            app.listen(5000, () => {
+                console.log("server running on port 5000");
+            });
+        })
+        .catch((err) => {
+            console.error("Connection error:", err.message);
+            process.exitCode = 1;
+        });
+}
+
+module.exports = app;
 
 

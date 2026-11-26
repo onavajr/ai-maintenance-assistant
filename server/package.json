@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "node testPasswordService.js && node testAIUsage.js && node testCompanyModels.js && node testCompanyAuth.js && node testRequireCompany.js && node testMachineCompanyScope.js"
+    "test": "node testPasswordService.js && node testAIUsage.js && node testCompanyModels.js && node testCompanyAuth.js && node testRequireCompany.js && node testMachineCompanyScope.js",
+    "test:integration": "node testMachineApiIsolation.js && node testMachineApiWriteIsolation.js"
   },
   "keywords": [],
   "author": "",
