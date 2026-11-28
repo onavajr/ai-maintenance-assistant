@@ -7,6 +7,12 @@ const partSchema = new mongoose.Schema({
         unique: true
     },
     
+    companyId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Company",
+        default: null
+    },
+
     name: {
         type: String,
         required: true

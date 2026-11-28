@@ -7,6 +7,14 @@ const inventoryTransactionSchema = new mongoose.Schema({
         required: true
     },
 
+
+    companyId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Company",
+        default: null
+    },
+
+
     type: {
         type: String,
         enum: ["IN", "OUT"],

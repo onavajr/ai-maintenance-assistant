@@ -195,7 +195,8 @@ app.post("/api/chat", async (req, res) => {
 
 });
 
-app.post("/api/parts", requireRole("admin", "manager"), async (req, res) => {
+
+app.post("/api/parts", requireRole("admin", "manager"), requireCompany, async (req, res) => {
     try {
         if(
             !req.body.partNumber ||
@@ -210,6 +211,7 @@ app.post("/api/parts", requireRole("admin", "manager"), async (req, res) => {
         }
 
         const newPart = await Part.create({
+            companyId: req.user.companyId,
             partNumber: req.body.partNumber,
             name: req.body.name,
             manufacturer: req.body.manufacturer,
@@ -232,9 +234,13 @@ app.post("/api/parts", requireRole("admin", "manager"), async (req, res) => {
     }
 });
 
-app.get("/api/parts", async (req, res) => {
+
+app.get("/api/parts", requireCompany, async (req, res) => {
+
     try {
-        const parts = await Part.find();
+        const parts = await Part.find({
+            companyId: req.user.companyId
+        });
 
         res.json(parts);
 
@@ -246,14 +252,20 @@ app.get("/api/parts", async (req, res) => {
     }
 });
 
-app.get("/api/parts/:id", async (req, res) => {
+
+app.get("/api/parts/:id", requireCompany, async (req, res) => {
+
     try {
         if (!mongoose.Types.ObjectId.isValid(req.params.id)){
             return res.status(400).json({
                 message: "Invalid part ID, please enter the correct ID"
             });
         }
-        const part = await Part.findById(req.params.id);
+
+        const part = await Part.findOne({
+            _id: req.params.id,
+            companyId: req.user.companyId
+        });
 
         if (!part) {
             return res.status(404).json({
@@ -271,7 +283,9 @@ app.get("/api/parts/:id", async (req, res) => {
     }
 });
 
-app.patch("/api/parts/:id", requireRole("admin", "manager"), async (req, res) => {
+
+app.patch("/api/parts/:id", requireRole("admin", "manager"), requireCompany, async (req, res) => {
+
     try {
         if (!mongoose.Types.ObjectId.isValid(req.params.id)){
             return res.status(400).json({
@@ -279,10 +293,34 @@ app.patch("/api/parts/:id", requireRole("admin", "manager"), async (req, res) =>
             });
         }
 
-        const part = await Part.findByIdAndUpdate(
-            req.params.id,
-            req.body,
-            { returnDocument: "after" }
+        const allowedFields = [
+            "partNumber", "name", "manufacturer",
+            "category", "description", "unitOfMeasure",
+            "minimumStock", "reorderPoint",
+            "lastPurchasePrice", "averageCost", "active"
+        ];
+
+        const updates = {};
+
+        for (const field of allowedFields) {
+            if (Object.hasOwn(req.body || {}, field)) {
+                updates[field] = req.body[field];
+            }
+        }
+
+        if (Object.keys(updates).length === 0) {
+            return res.status(400).json({
+                message: "No valid update fields provided"
+            });
+        }
+
+        const part = await Part.findOneAndUpdate(
+            {
+                _id: req.params.id,
+                companyId: req.user.companyId
+            },
+            { $set: updates },
+            { returnDocument: 'after', runValidators: true }
         );
 
         if (!part) {
